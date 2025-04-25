@@ -42,6 +42,21 @@ def charada_aleatoria():
         return jsonify(random.choice(charadas)), 200
     else:
         return jsonify({"error": "Nenhuma charada encontrada"}), 404
+    
+#---------MÉTODO GET - LISTAR CHARADAS---------#
+@app.route('/charadas/lista', methods=['GET'])
+def charada_lista():
+    charadas = []
+    lista = db.collection('charadas').stream()
+
+    for item in lista:
+        charadas.append(item.to_dict())
+
+    if charadas:
+        return jsonify(charadas), 200
+    
+    else:
+        return jsonify({"error": "Nenhuma charada encontrada"}), 404
 
 
 #---------MÉTODO GET - CHARADA POR ID   ---------#
@@ -78,15 +93,15 @@ def adicionar_charada():
         'resposta': dados['resposta']
     })
 
-    return jsonify({"message": "Charada adicionada com sucesso"}), 201
+    return jsonify({"mensagem": "Charada adicionada com sucesso"}), 201
 
 #---------MÉTODO PUT - ATUALIZAR CHARADA---------#
 @app.route('/charadas/<id>', methods=['PUT'])
-def atuliazar_charada(id):
+def atualizar_charada(id):
     dados = request.json
 
-    if "pergunta" not in dados and "resposta" not in dados:
-        return jsonify({"error": "Necessário informar pergunta ou resposta"}), 400
+    if not dados or "pergunta" not in dados or "resposta" not in dados:
+        return jsonify({"error": "Necessário informar pergunta e resposta"}), 400
 
     doc_ref = db.collection('charadas').document(id)
     doc = doc_ref.get()
@@ -96,13 +111,15 @@ def atuliazar_charada(id):
             'pergunta': dados['pergunta'],
             'resposta': dados['resposta']
         })
-        return jsonify({"message": "Charada atualizada com sucesso"}), 201
+        return jsonify({"message": "Charada atualizada com sucesso"}), 200
     else:
         return jsonify({"error": "Charada não encontrada"}), 404
+
 
 #---------MÉTODO DELETE - REMOVER CHARADA---------#
 @app.route('/charadas/<id>', methods=['DELETE'])
 def excluir_charada(id):
+    print("Tentando excluir:", id)  # Adiciona isso pra ver no terminal
     doc_ref = db.collection('charadas').document(id)
     doc = doc_ref.get()
 
@@ -111,6 +128,7 @@ def excluir_charada(id):
     else:
         doc_ref.delete()
         return jsonify({"message": "Charada removida com sucesso"}), 200
+
 
 
 
